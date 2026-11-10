@@ -1,0 +1,30 @@
+# The storefront.
+#   docker network create tej-net        # once per machine, shared by all services
+#   docker compose up --build
+# Store: http://localhost:3000. Start the api-gateway (and the services behind it)
+# from their own folders; the store reaches it over tej-net.
+name: tej-frontend
+
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        GATEWAY_URL: http://api-gateway:4000
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      GATEWAY_URL: http://api-gateway:4000
+      # Checks catalog-service's calls to /api/revalidate. Development value, the
+      # same default every service uses; set a real secret in production.
+      SERVICE_TOKEN_SECRET: dev-only-service-token-secret-change-me-in-production
+    ports:
+      - "3000:3000"
+    networks:
+      - tej-net
+    restart: unless-stopped
+
+networks:
+  tej-net:
+    external: true
